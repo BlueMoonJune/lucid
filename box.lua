@@ -1,7 +1,6 @@
 require "control"
 
-VBox = class ({
-	name = "VBox";
+class ("VBox", {
 
 	sortChildren = function (self)
 		self.minH = 0
@@ -39,9 +38,12 @@ VBox = class ({
 		end
 	end;
 
-	_draw = function (self)
+	update = function (self)
 		self:sortChildren()
-		self:customDraw()
+	end;
+
+	_draw = function (self)
+		self:draw()
 		for _, v in ipairs(self.children) do
 			v:_draw()
 		end
@@ -49,8 +51,10 @@ VBox = class ({
 })
 :extend(Control)
 
-HBox = class ({
+class ("HBox", {
 	name = "HBox";
+
+	spacing = 4;
 
 	sortChildren = function (self)
 		self.minH = 0
@@ -58,7 +62,7 @@ HBox = class ({
 		local stretchTotal = 0
 		local stretchSpace = 0
 		for _, c in ipairs(self.children) do
-			self.minW = self.minW + c.minW
+			self.minW = self.minW + c.minW + self.spacing
 			self.minH = math.max(self.minH, c.minH)
 			if c.expandH then
 				stretchTotal = stretchTotal + c.stretchRatio
@@ -67,7 +71,7 @@ HBox = class ({
 						self._rect.right - self._rect.left
 				end
 			else
-				stretchSpace = stretchSpace - c.minW
+				stretchSpace = stretchSpace - c.minW - self.spacing
 			end
 		end
 		local x = 0
@@ -78,19 +82,22 @@ HBox = class ({
 			else
 				w = c.minW
 			end
-			c._rect = {
-				top = self._rect.top,
-				bottom = self._rect.bottom,
-				left = self._rect.left + x,
-				right = self._rect.left + x + w,
-			}
-			x = x + w
+			c:fitInRect(
+				self._rect.left + x,
+				self._rect.left + x + w,
+				self._rect.top,
+				self._rect.bottom
+			)
+			x = x + w + self.spacing
 		end
 	end;
 
-	_draw = function (self)
+	update = function (self)
 		self:sortChildren()
-		self:customDraw()
+	end;
+
+	_draw = function (self)
+		self:draw()
 		for _, v in ipairs(self.children) do
 			v:_draw()
 		end

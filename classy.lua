@@ -6,14 +6,7 @@ local function copy(source, into)
 	return into
 end
 
-local function init(self, initer)
-	for k, v in pairs(initer) do
-		self[k] = v
-	end
-	return self
-end
-
-local function new(self, ...)
+local function new(self, initer)
 	local ret = {}
 	for k, v in pairs(self.fields) do
 		if type(v) == "table" then
@@ -22,7 +15,12 @@ local function new(self, ...)
 		ret[k] = v
 	end
 	setmetatable(ret, self.meta)
-	if self.ctor then self.ctor(ret, ...) end
+	if initer then
+		for k, v in pairs(initer) do
+			ret[k] = v
+		end
+	end
+	if self.ctor then self.ctor(ret) end
 	return ret
 end
 
@@ -42,7 +40,8 @@ function extend(class, base)
 	return class
 end
 
-function class(t)
+function class(name, t)
+	assert(type(name), "Class `name` should be 'string', was '"..type(t).."' instead")
 	t.type = t
 	local fields, meta = {}, {__index = t}
 	for k, v in pairs(t) do
@@ -54,12 +53,13 @@ function class(t)
 			t[k] = nil
 		end
 	end
+	t.name = name
 	t.heirarchy = {[t] = true}
 	t.fields = fields
 	t.meta = meta
 	t.new = new
 	t.extend = extend
 	t.is = is
-	t.init = init
+	_G[name] = t
 	return t
 end

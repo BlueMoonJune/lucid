@@ -1,5 +1,12 @@
-Control = class ({
-	name = "Control";
+
+class ("Control", {
+	--Callbacks
+	update = function (self, dt) end;
+	draw = function (self) end;
+	mousepressed = function (self, x, y, ...) end;
+
+	theme = nil;
+	style = nil;
 
 	minW = 0;
 	minH = 0;
@@ -25,21 +32,50 @@ Control = class ({
 		bottom = 0;
 	};
 
+	expandH = false;
 	expandV = false;
 	stretchRatio = 1;
 
 	parent = nil;
 	children = {};
 
-	--LÖVE specific
-	customDraw = function (self)
-		local s = self._rect
-		love.graphics.rectangle("line", s.left, s.top,
-			s.right - s.left, s.bottom - s.top)
+	getThemeValue = function (self, value, style, object)
+		object = object or self.name
+		return self.theme and self.theme:getValue(object, value, style or self.style) or self.parent and self.parent:getThemeValue(value, style or self.style, object)
+	end;
+
+	pointIn = function (self, x, y)
+		local s = self._rect;
+		return s.left <= x and x <= s.right
+			and s.top <= y and y <= s.bottom
+	end;
+
+	fitInRect = function (self, l, r, t, b)
+		self._rect.left, self._rect.right = self.fitModeH(l, r, self.minW)
+		self._rect.top, self._rect.bottom = self.fitModeV(t, b, self.minH)
+	end;
+
+	_mousepressed = function (self, x, y, ...)
+		for i = #self.children, 1, -1 do
+			local c = self.children[i]
+			if c:pointIn(x, y) then
+				if c:_mousepressed(x, y, ...) then
+					return true
+				end
+			end
+		end
+		return self:mousepressed(x, y, ...)
+	end;
+
+	_update = function (self, dt)
+		for _, v in ipairs(self.children) do
+			v:_update(dt)
+		end
+		self:update(dt)
 	end;
 
 	_draw = function (self)
-		self:customDraw()
+		self:draw()
 		for _, v in ipairs(self.children) do
 			v:_calcRect()
 			v:_draw()
@@ -66,3 +102,21 @@ Control = class ({
 
 	__tostring = function (self) return self.name end;
 })
+
+Control.FitMode = {
+	shrinkStart = function (s, e, min)
+		return s, math.min(s + min, e)
+	end;
+	shrinkCenter = function (s, e, min)
+		return (s + e - min) / 2, (s + e + min) / 2
+	end;
+	shrinkEnd = function (s, e, min)
+		return math.max(s, e - min), e
+	end;
+	fill = function (s, e, _)
+		return s, e
+	end;
+}
+
+Control.fields.fitModeH = Control.FitMode.fill
+Control.fields.fitModeV = Control.FitMode.fill
