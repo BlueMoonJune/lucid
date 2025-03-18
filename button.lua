@@ -1,15 +1,12 @@
 require("control")
 
 class ("Button", {
-	name = "Button";
-
 	text = "Button";
 
 	font = love.graphics.getFont();
 
 	alignX = 0.5;
 	alignY = 0.5;
-	padding = 8;
 
 	pressed = false;
 	onPress = function () end;
@@ -33,24 +30,27 @@ class ("Button", {
 
 		local theme = self:getLerpedTheme()
 
-		self.minW = tw + theme.padding
-		self.minH = th + theme.padding
+		self.minW = math.max(tw, self.cminW) + theme.padding * 2 + theme.margin * 2
+		self.minH = math.max(th, self.cminH) + theme.padding * 2 + theme.margin * 2
 	end;
 
 	draw = function (self)
 		local tw, th = self.font:getWidth(self.text), self.font:getHeight()
-		local l, t, r, b = self._rect.left, self._rect.top, self._rect.right, self._rect.bottom
-		local w, h = r - l, b - t
 
 		local theme = self:getLerpedTheme()
+		local m, p = theme.margin, theme.padding
+		local l, t, r, b = self._rect.left + m, self._rect.top + m, self._rect.right - m, self._rect.bottom - m
+		local w, h = r - l, b - t
 
 		love.graphics.setColor(theme.fillColor)
 		love.graphics.rectangle("fill", l, t, w, h, theme.corner, theme.corner)
 		love.graphics.setColor(theme.textColor)
-		love.graphics.print(self.text, math.lerp(l, r, self.alignX) - tw * self.alignX, math.lerp(t, b, self.alignY) - th * self.alignY)
+		love.graphics.print(self.text, math.lerp(l + p, r - p, self.alignX) - tw * self.alignX, math.lerp(t + p, b - p, self.alignY) - th * self.alignY)
 	end;
 
 	mousepressed = function (self, x, y, ...)
+		print(...)
+		self:onPress(x - self._rect.left, y - self._rect.top)
 		self._pressProg = 1
 	end
 })

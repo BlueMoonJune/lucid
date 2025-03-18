@@ -4,11 +4,12 @@ class ("VBox", {
 
 	sortChildren = function (self)
 		self.minH = 0
-		self.minV = 0
+		self.minW = 0
+		local spacing = self:getThemeValue "spacing"
 		local stretchTotal = 0
 		local stretchSpace = 0
 		for _, c in ipairs(self.children) do
-			self.minH = self.minH + c.minH
+			self.minH = self.minH + c.minH + spacing
 			self.minW = math.max(self.minW, c.minW)
 			if c.expandV then
 				stretchTotal = stretchTotal + c.stretchRatio
@@ -17,7 +18,7 @@ class ("VBox", {
 						self._rect.bottom - self._rect.top
 				end
 			else
-				stretchSpace = stretchSpace - c.minH
+				stretchSpace = stretchSpace - c.minH - spacing
 			end
 		end
 		local y = 0
@@ -28,13 +29,13 @@ class ("VBox", {
 			else
 				h = c.minH
 			end
-			c._rect = {
-				left = self._rect.left,
-				right = self._rect.right,
-				top = self._rect.top + y,
-				bottom = self._rect.top + y + h,
-			}
-			y = y + h
+			c:fitInRect(
+				self._rect.left,
+				self._rect.right,
+				self._rect.top + y,
+				self._rect.top + y + h
+			)
+			y = y + h + spacing
 		end
 	end;
 
@@ -54,15 +55,14 @@ class ("VBox", {
 class ("HBox", {
 	name = "HBox";
 
-	spacing = 4;
-
 	sortChildren = function (self)
 		self.minH = 0
-		self.minV = 0
+		self.minW = 0
+		local spacing = self:getThemeValue "spacing"
 		local stretchTotal = 0
 		local stretchSpace = 0
 		for _, c in ipairs(self.children) do
-			self.minW = self.minW + c.minW + self.spacing
+			self.minW = self.minW + c.minW + spacing
 			self.minH = math.max(self.minH, c.minH)
 			if c.expandH then
 				stretchTotal = stretchTotal + c.stretchRatio
@@ -71,7 +71,7 @@ class ("HBox", {
 						self._rect.right - self._rect.left
 				end
 			else
-				stretchSpace = stretchSpace - c.minW - self.spacing
+				stretchSpace = stretchSpace - c.minW - spacing
 			end
 		end
 		local x = 0
@@ -88,7 +88,7 @@ class ("HBox", {
 				self._rect.top,
 				self._rect.bottom
 			)
-			x = x + w + self.spacing
+			x = x + w + spacing
 		end
 	end;
 

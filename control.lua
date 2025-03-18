@@ -11,6 +11,9 @@ class ("Control", {
 	minW = 0;
 	minH = 0;
 
+	cminW = 0;
+	cminH = 0;
+
 	anchors = {
 		left = 0;
 		right = 1;

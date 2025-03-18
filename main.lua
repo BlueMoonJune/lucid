@@ -8,17 +8,25 @@ require "box"
 require "colorrect"
 require "button"
 require "theme"
+require "label"
 
-local root = VBox:new({
+local root = VBox:new{
 	theme = require "defaultTheme"
-})
-:addChild(HBox:new()
-	:addChild(Button:new{fitModeV = Control.FitMode.shrinkStart})
-	:addChild(Button:new{fitModeV = Control.FitMode.shrinkStart})
-	:addChild(Button:new{fitModeV = Control.FitMode.shrinkStart, fitModeH = Control.FitMode.shrinkCenter, expandH = true})
-	:addChild(Button:new{fitModeV = Control.FitMode.shrinkStart})
-	:addChild(Button:new{fitModeV = Control.FitMode.shrinkStart})
-)
+}
+
+local function loadExample(self)
+	root = require("examples."..self.text)
+	root:_update(dt)
+	root:_update(dt)
+	root:_update(dt)
+	root:_update(dt)
+	root:_update(dt)
+	love.window.setMode(root.minW, root.minH)
+end
+
+for _, v in ipairs(love.filesystem.getDirectoryItems("examples")) do
+	root:addChild(Button:new({text = v:sub(1, -5), onPress = loadExample}))
+end
 
 function love.update(dt)
 	root:_update(dt)
@@ -33,5 +41,3 @@ end
 function love.mousepressed(x, y, ...)
 	root:_mousepressed(x, y, ...)
 end
-
-
